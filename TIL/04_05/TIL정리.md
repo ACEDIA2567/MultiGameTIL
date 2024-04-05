@@ -43,10 +43,12 @@ private bool isRefreshing = false; // 새로고침 여부
 ```
 ### 변수 선언
 
+```cs
 private void OnEnable()
     {
         RefreshList();
     }
+```
 ### 해당 스크립트를 컴포넌트가 되어있는 오브젝트가 활성화가 되면 RefreshList()를 실행 함
 
 ```cs
