@@ -138,4 +138,19 @@ public async void JoinAsync(Lobby lobby)
 ### 로비에 대한 정보를 변수로 저장하여 참여코드를 string joinCode로 저장 한 뒤
 ### ClientSingleton의 GameManager의 참여코드 매개변수로 joinCode를 추가하여 게임에 참가한다.
 ### 이후 참여를 했으므로 isJoining를 false로 변경
-    
+
+
+## 주요 코드 정리
+### 로비
+```cs
+QueryLobbiesOptions options = new QueryLobbiesOptions(); => 로비 필터 옵션를 변수로 저장
+options.Count = 25; => 필터에 나올 개수
+QueryResponse lobbies = await Lobbies.Instance.QueryLobbiesAsync(options); => options의 필터로 나온 List들을 lobbies에 저장
+```
+
+### 접속
+```cs
+Lobby joiningLobby = await Lobbies.Instance.JoinLobbyByIdAsync(lobby.Id); => lobby.Id의 값을 가진 Lobby 정보를 joiningLobby에 변수로 저장
+string joinCode = joiningLobby.Data["JoinCode"].Value; => joiningLobby의 딕셔너리 "JoinCode"의 값을 joinCode로 저장
+ClientSingleton.Instance.GameManager.StartClientAsync(joinCode); => joinCode를 매개변수로 하여 StartClientAsync 실행
+```
