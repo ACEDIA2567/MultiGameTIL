@@ -55,3 +55,69 @@ public void Connect()
 ### 버튼의 기능으로서 PlayerNameKey를 nameField.text로 변수 저장하여 이름을 저장
 ### 현재의 씬 다음에 존재하는 씬으로 이동
 
+```cs
+public NetworkServer(NetworkManager networkManager)
+    {
+        this.networkManager = networkManager;
+
+        // 연결 요청을 할때마다 ApprovalCheck메서드를 실행
+        networkManager.ConnectionApprovalCallback += ApprovalCheck;
+    }
+```
+### ConnectionApprovalCallback를 사용하여 연결할 때마다 ApprovalCheck를 실행하게 함
+
+```cs
+private void ApprovalCheck(
+        NetworkManager.ConnectionApprovalRequest request, 
+        NetworkManager.ConnectionApprovalResponse response)
+    {
+        // request.Payload를 UTF8의 문자열 변수로 변환하여 저장
+        string playload = System.Text.Encoding.UTF8.GetString(request.Payload);
+        // playload를 Json문자열로 변경하여 사용 가능하게 저장함
+        UserData userData = JsonUtility.FromJson<UserData>(playload);
+
+        Debug.Log(userData.userName);
+
+        response.Approved = true;
+        // 연결 승인을 재정의 했으므로 플레이어 오브젝트를 생성함
+        response.CreatePlayerObject = true;
+    }
+```
+### 요청한 클라이언트의 Payload를 Json문자열로 변경하여 userData에 저장함
+
+```cs
+[Serializable]
+public class UserData
+{
+    public string userName;
+}
+```
+### 저장한 데이터 즉 클라이언트의 userName을 로그하여 이름을 출력함
+
+```cs
+// 네트워크 서버 생성
+        networkServer = new NetworkServer(NetworkManager.Singleton);
+
+UserData userData = new UserData
+        {
+            // UserData의 userName변수를 PlauerPrefs의 NameSelector.PlayerNameKey에서 가져옴
+            userName = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "Missing Name")
+        };
+
+        // 문자열 Json파일을 string변수로 payLoad에 저장
+        string payLoad = JsonUtility.ToJson(userData);
+        // 문자열 payLoad를 Byte[]로 변환하여 변수로 저장
+        byte[] payloadBytes = Encoding.UTF8.GetBytes(payLoad);
+
+        // Byte[]로 저장한 데이터를 서버로 정보 전송
+        NetworkManager.Singleton.NetworkConfig.ConnectionData = payloadBytes;
+```
+### Client, Host의 GameManager에서 각자 서버에 자신의 이름 userName에 저장 후
+### 문자열 Json파일을 Bytes로 변환하여 서버로 전달
+
+```cs
+string PlayerName = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "unknown Lobby");
+            Lobby lobby = await Lobbies.Instance.CreateLobbyAsync(
+                $"{PlayerName}'s Lobby", MaxConnections, lobbyOptions);
+```
+### 후 호스트에서는 자신의 이름을 로비의 명에 추가로 하여 해당 로비의 호스트를 알리게 함
