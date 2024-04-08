@@ -1,4 +1,3 @@
-```cs
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -48,4 +47,4 @@ public class NameSelector : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 }
-```
+
