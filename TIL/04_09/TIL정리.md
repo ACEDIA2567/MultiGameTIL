@@ -1,5 +1,7 @@
 # 2024-04-09 TIL
 
+## 1. 다른 씬에서 작업을 해도 플레이 버튼 시 1번째 씬부터 시작하게 구현 <br> 2. 접속한 클라이언트 정보 딕셔너리 저장 및 삭제<br> 3. 연결 해제 또는 
+
 ```cs
 [InitializeOnLoad]
 public static class StartUpSceneLoader
@@ -53,7 +55,6 @@ private Dictionary<string, UserData> authIdToUserData = new Dictionary<string, U
 ```
 ### 클라이언트와 유저 정보를 딕셔너리 변수로 저장
 
-
 ```cs
 networkManager.OnServerStarted += OnNetworkReady;
 
@@ -84,6 +85,64 @@ private void OnNetworkReady()
 ### 아까 저장하였던 클라이언트의 정보를 검색하여 삭제 함
 
 ```cs
+// 해당 오브젝트가 삭제되면
+    private void OnDestroy()
+    {
+        // GameManager 존재 여부 확인 후 실행
+        GameManager?.Dispose();
+    }
+
+private void OnDestroy()
+    {
+        GameManager?.Dispose();
+    }
+```
+### Host와 Client에 각 삭제 시 해당 싱글톤의 Dispose() 실행
+
+```cs
+public void Dispose()
+    {
+        // networkClient의 존재 여부 확인 후 실행
+        networkClient?.Dispose();
+    }
+
+public void Dispose()
+    {
+        // 네트워크 관리자가 존재 한다면
+        if (networkManager != null)
+        {
+            // OnClientDisconnect를 이벤트에서 제거
+            networkManager.OnClientDisconnectCallback -= OnClientDisconnect;
+        }
+    }
+```
+### 인터페이스 IDisposable를 이용하여 추가했던 이벤트 함수를 제거 처리 후
+### Client에 대한 Dispose 순서
+
+```cs
+public async void Dispose()
+    {
+        HostSingleton.Instance.StopCoroutine(nameof(HearbeatLobby));
+
+        // lobbyId가 비어있거나 Null이 아니라면
+        if (!string.IsNullOrEmpty(lobbyId))
+        {
+            try
+            {
+                // 로비 Id삭제
+                await Lobbies.Instance.DeleteLobbyAsync(lobbyId);
+            }
+            catch(LobbyServiceException ex)
+            {
+                Debug.Log(ex);
+            }
+
+            lobbyId = string.Empty;
+        }
+
+        networkServer?.Dispose();
+    }
+
 public void Dispose()
     {
         if(networkManager == null) { return; }
@@ -100,37 +159,10 @@ public void Dispose()
             networkManager.Shutdown();
         }
     }
-```
-### 인터페이스 IDisposable를 이용하여 추가했던 이벤트 함수를 제거 처리 후
-### 아직 서버에 수신 중이라면 종료 함
-
-
-
-
-
-
-
-```cs
-// 해당 오브젝트가 삭제되면
-    private void OnDestroy()
-    {
-        // GameManager 존재 여부 확인 후 실행
-        GameManager?.Dispose();
-    }
-
-private void OnDestroy()
-    {
-        GameManager?.Dispose();
-    }
-
-
 
 ```
-### Host와 Client에 각 삭제 시 해당 싱글톤의 Dispose() 실행
-
-
-
-
+### Host에 대한 Dispose 순서
+### 아직도 네트워크 수신 중이라면 네트워크 종료 설정
 
 ## 주요 코드 정리
 ### 씬 편집 상태
