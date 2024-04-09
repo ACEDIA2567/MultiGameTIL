@@ -121,3 +121,22 @@ string PlayerName = PlayerPrefs.GetString(NameSelector.PlayerNameKey, "unknown L
                 $"{PlayerName}'s Lobby", MaxConnections, lobbyOptions);
 ```
 ### 후 호스트에서는 자신의 이름을 로비의 명에 추가로 하여 해당 로비의 호스트를 알리게 함
+
+
+## 주요 코드
+### 버튼
+```cs
+connectButton.interactable = 
+            nameField.text.Length >= minNameLength &&
+            nameField.text.Length <= maxNameLength; => 해당 조건에 만족 시 버튼 활성화 / 아니라면 비활성화
+```
+
+### 씬
+```cs
+SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1); => 현재 사용 중인 씬을 다음 순서의 씬으로 로드
+```
+
+```cs
+nameField.text = PlayerPrefs.GetString(PlayerNameKey, string.Empty); => nameField.text에 PlayerNameKey에 저장된 value값으로 저장 / 만약 value가 없다면 string.Empty로 저장
+PlayerPrefs.SetString(PlayerNameKey, nameField.text); => PlayerNameKey의 변수에 nameField.text를 value로 저장
+```
